@@ -43,6 +43,11 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/donated', async (req, res) => {
+      const result = await donationCollection.find().toArray();
+      res.send(result);
+    });
+
     app.patch('/users/:email', async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -62,10 +67,39 @@ async function run() {
       res.send(result);
     });
 
+     app.get('/campaigns/active', async (req, res) => {
+      const today = new Date();
+      const campaigns = await campaignsCollection
+        .find({ date: { $gte: today.toISOString() } })
+        .limit(6)
+        .toArray();
+      res.send(campaigns);
+    });
+
     app.get('/campaigns/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id) }
+      const query = { _id: new ObjectId(id) }
       const result = await campaignsCollection.findOne(query);
+      res.send(result);
+    });
+
+   
+
+    app.put('/campaigns/:id', async (req, res) => {
+      const id = req.params.id;
+      const updatedCampaign = req.body;
+      const filter = { _id: new ObjectId(id) }
+      const updateDoc = {
+        $set: {
+          Campaign: updatedCampaign.Campaign,
+          description: updatedCampaign.description,
+          type: updatedCampaign.type,
+          amount: updatedCampaign.amount,
+          date: updatedCampaign.date,
+          photo: updatedCampaign.photo
+        },
+      };
+      const result = await campaignsCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
 
@@ -74,6 +108,14 @@ async function run() {
       const result = await campaignsCollection.insertOne(user);
       res.send(result)
     })
+
+    app.delete('/campaigns/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await campaignsCollection.deleteOne(query);
+      res.send(result)
+    })
+
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
