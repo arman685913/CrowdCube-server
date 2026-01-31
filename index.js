@@ -28,11 +28,18 @@ async function run() {
 
     const usersCollection = client.db("crowdcubeDB").collection("users");
     const campaignsCollection = client.db("crowdcubeDB").collection("campaigns");
+    const donationCollection = client.db("crowdcubeDB").collection("donated");
 
 
     app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.send(result)
+    })
+
+    app.post('/donated', async (req, res) => {
+      const donated = req.body;
+      const result = await donationCollection.insertOne(donated);
       res.send(result)
     })
 
