@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const cors = require('cors')
 require('dotenv').config()
@@ -27,11 +27,37 @@ async function run() {
 
 
     const usersCollection = client.db("crowdcubeDB").collection("users");
+    const campaignsCollection = client.db("crowdcubeDB").collection("campaigns");
 
 
-    app.post('/users' , async (req ,res) => {
+    app.post('/users', async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.send(result)
+    })
+
+    app.patch('/users/:email', async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: {
+          name: user.name,
+          photo: user.photo
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    app.get('/campaigns', async (req, res) => {
+      const result = await campaignsCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post('/campaigns', async (req, res) => {
+      const user = req.body;
+      const result = await campaignsCollection.insertOne(user);
       res.send(result)
     })
 
@@ -41,7 +67,7 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    
+
   }
 }
 run().catch(console.dir);
